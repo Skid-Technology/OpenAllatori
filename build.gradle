@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'idea'
+    id 'eclipse'
+}
+group = 'com.allatori'
+version = '9.9'
+repositories { mavenCentral() }
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
+    withSourcesJar()
+}
+application {
+    mainClass = 'com.allatori.Obfuscate'
+    applicationDefaultJvmArgs = ['--add-opens=java.base/java.util.zip=ALL-UNNAMED']
+}
+sourceSets {
+    wtkApi { java.srcDir 'src/wtkApi/java' }
+    main { compileClasspath += sourceSets.wtkApi.output }
+}
+dependencies {
+    compileOnly 'org.apache.ant:ant:1.10.15'
+    compileOnly('org.eclipse.platform:org.eclipse.equinox.registry:3.11.200') { transitive = false }
+    compileOnly('org.eclipse.platform:org.eclipse.core.resources:3.18.100') { transitive = false }
+    compileOnly('org.eclipse.platform:org.eclipse.core.runtime:3.26.100') { transitive = false }
+    compileOnly('org.eclipse.platform:org.eclipse.equinox.common:3.17.0') { transitive = false }
+    compileOnly('org.eclipse.platform:org.eclipse.core.jobs:3.13.200') { transitive = false }
+    compileOnly('org.eclipse.platform:org.eclipse.core.commands:3.10.300') { transitive = false }
+    compileOnly('org.eclipse.platform:org.eclipse.core.expressions:3.8.200') { transitive = false }
+    compileOnly('org.eclipse.platform:org.eclipse.jface:3.28.0') { transitive = false }
+    compileOnly('org.eclipse.platform:org.eclipse.ui.workbench:3.127.0') { transitive = false }
+    compileOnly('org.eclipse.platform:org.eclipse.osgi:3.18.200') { transitive = false }
+    compileOnly('org.eclipse.jdt:org.eclipse.jdt.core:3.32.0') { transitive = false }
+}
+tasks.named('compileJava') { dependsOn tasks.named('wtkApiClasses') }
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-parameters', '-Xmaxerrs', '2000']
+}
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+jar {
+    manifest {
+        from('src/main/resources/META-INF/MANIFEST.MF')
+        attributes('Main-Class': 'com.allatori.Obfuscate', 'Bundle-RequiredExecutionEnvironment': 'JavaSE-17', 'Add-Opens': 'java.base/java.util.zip')
+    }
+}
+processResources { exclude 'META-INF/MANIFEST.MF' }
+tasks.register('resolveCompileApis') { doLast { configurations.compileClasspath.files.each { println it.name } } }

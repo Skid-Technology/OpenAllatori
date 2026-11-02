@@ -1,0 +1,17 @@
+package com.allatori.lib.bcel.generic;
+
+public class ISUB extends ArithmeticInstruction {
+
+  @Override
+  public void accept(Visitor visitor) {
+    visitor.visitTypedInstruction(this);
+    visitor.visitStackProducer(this);
+    visitor.visitStackConsumer(this);
+    visitor.visitArithmeticInstruction(this);
+    visitor.visitISUB(this);
+  }
+
+  public ISUB() {
+    super((short) 100);
+  }
+}
